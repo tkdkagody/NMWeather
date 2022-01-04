@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   desc : {
     marginTop: 20,
     fontSize: 20,
-    color: "white"
+    color: "snow"
   },
  
 })
