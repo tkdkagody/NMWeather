@@ -3,15 +3,30 @@ import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { Dimensions } from 'react-native';
 import { ActivityIndicator, StyleSheet, Text, View, ScrollView } from 'react-native';
+import { Fontisto } from '@expo/vector-icons'; 
+import axios from 'axios';
+import { withOrientation } from 'react-navigation';
 
 
-  const { width: SCREEN_WIDTH } = Dimensions.get('window');
+  const { width: SCREEN_WIDTH } = Dimensions.get('window');  //Dimensions 스크린의 길이 또는 넓이를 구할 수 있음 rn 
   //console.log(SCREEN_WIDTH,"가로넓이");
 
-  const API_KEY = "7854b9762ea3af9619e6a79a67b2cd17";
+  const API_KEY = "7854b9762ea3af9619e6a79a67b2cd17";   //서버쪽에 저장
+
+  //icon name 지정
+  const icons = {
+    Clouds: "cloudy",
+    Clear: "day-sunny",
+    Atmosphere: "cloudy-gusts",
+    Snow: "snow",
+    Rain: "rains",
+    Drizzle: "rain",
+    Thunderstorm: "lightning",
+  };
+
 
   export default function App() {
-    const [city, setCity] = useState("Loading...")
+    const [city, setCity] = useState("Loading...");
     const [ok, setOk] = useState(true);
     const [days, setDays] = useState([]);
 
@@ -32,11 +47,16 @@ import { ActivityIndicator, StyleSheet, Text, View, ScrollView } from 'react-nat
       setCity(location[0].city)
       
       //api
-      const res = await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&appid=${API_KEY}`)
-      const json = await res.json();
-      setDays(json.daily)
-      console.log(days,"ddddd")
+      axios.get(`https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&appid=${API_KEY}&units=metric`)
+      .then((res)=> {
+        console.log("시작------",res.data.daily,"----------daily응답값")
+        setDays(res.data.daily)
+      })
+      .catch(err => console.log(err))
+
     };
+
+
     // "daily": Array [
     //   Object {
     //     "clouds": 0,
@@ -89,20 +109,29 @@ import { ActivityIndicator, StyleSheet, Text, View, ScrollView } from 'react-nat
           <View style={styles.city}>
             <Text style={styles.cityName}>{city}</Text>
           </View>
-          
                 <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weather}>
-                  {days.length===0 ? (<View style={styles.day}>
-                    <ActivityIndicator size="large"  color="white" style={{marginTop: 10}}/>
+                  {days.length=== 0 ? (<View style={{...styles.day, alignItems: "center"}}>
+                    <ActivityIndicator size="large"  color="white" style={{marginTop: 1, marginLeft: 50}}/>
                   </View>) : 
                   (
                     days.map((day, index) => 
                       <View key={index} style={styles.day}>
-                        <Text style={styles.temp}>{day.temp.day}</Text>
-                        <Text style={styles.desc}>{day.weather[0].main}</Text>
+                        <View style={{
+                          flexDirection: "row",
+                          alignItems:"center", 
+                          justifyContent: "space-btween",
+                          width: "100%",
+                     
+
+                        }}>
+                          <Text style={styles.temp}>{parseFloat(day.temp.day).toFixed(1)}</Text>
+                          <Fontisto name={icons[day.weather[0].main]} size={68} color="white" />
+                        </View>
+                        <Text style={styles.main}>{day.weather[0].main}</Text>
+                        <Text style={styles.desc}>{day.weather[0].description}</Text>
                       </View>
                     )
                   )}
-                 
                 </ScrollView>
         </View>
     );
@@ -116,29 +145,47 @@ const styles = StyleSheet.create({
   city : {
     flex:1.2,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+
   },
   cityName : {
     fontSize :58,
-    fontWeight : "500"
+    fontWeight : "500",
+    color: "white"
   },
-  weather : {  },
+  weather : { 
+    
+   },
+
   day: {
     width: SCREEN_WIDTH,
-    alignItems: "center",
+    alignItems: "flex-start",
+    color: "white",
+    paddingHorizontal : 50,
   },
   temp :{
     marginTop : 50,
+    marginBottom: 50, 
     fontWeight: "600",
-    fontSize: 168,
+    fontSize: 100,
+    color: "white",
+    marginRight: 20
+
   },
-  desc: {
+  main: {
     marginTop: -30,
-    fontSize: 60,
-  }
+    fontSize:25,
+    color: "white"
+  },
+  desc : {
+    marginTop: 20,
+    fontSize: 20,
+    color: "white"
+  },
+ 
 })
 
 
 
 //parameter units -> metric 
-//FarseFloat
+//parseFloat
